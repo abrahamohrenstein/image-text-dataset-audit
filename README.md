@@ -7,7 +7,7 @@
 
 > **Paper:** "Copyright Indicators and Franchise IP in Billion-Scale Image-Text Datasets: An Empirical Analysis"  
 > **Author:** Abraham Ohrenstein (Zero Oversight Project)  
-> **Date:** December 2024
+> **Date:** December 2025
 
 ---
 
