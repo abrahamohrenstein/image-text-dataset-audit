@@ -210,11 +210,11 @@ See [REPRODUCTION.md](docs/REPRODUCTION.md) for detailed instructions.
 If you use this code or data in your research, please cite:
 
 ```bibtex
-@article{ohrenstein2024copyright,
+@article{ohrenstein2025copyright,
   title={Copyright Indicators and Franchise IP in Billion-Scale Image-Text Datasets: An Empirical Analysis},
   author={Ohrenstein, Abraham},
   journal={arXiv preprint arXiv:XXXX.XXXXX},
-  year={2024}
+  year={2025}
 }
 ```
 
@@ -234,7 +234,7 @@ This is a research artifact repository. For questions, corrections, or suggestio
 
 - **Open an issue:** For bugs or methodology questions
 - **Pull requests:** For corrections to data or code
-- **Email:** zero_oversight_project@proton.me
+- **Email:** zero.oversight.project@proton.me
 
 ---
 
@@ -264,9 +264,9 @@ Interpretation requires domain expertise in law, ML, and policy.
 **Abraham Ohrenstein**  
 Zero Oversight Project  
 Independent Researcher  
-📧 zero_oversight_project@proton.me  
+📧 zero.oversight.project@proton.me  
 🐦 [@ZeroOversight](https://twitter.com/ZeroOversight) *(if applicable)*
 
 ---
 
-**Last Updated:** December 2024
+**Last Updated:** December 2025
