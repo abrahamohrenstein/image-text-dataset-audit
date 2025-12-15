@@ -1,0 +1,733 @@
+% arXiv-ready paper skeleton
+\documentclass[11pt]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=blue
+}
+
+% Code listing setup
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    language=SQL
+}
+
+\title{Copyright Indicators and Franchise IP in Billion-Scale Image-Text Datasets: An Empirical Analysis}
+
+\author{
+    Abraham Ohrenstein \\
+    Zero Oversight Project \\
+    Independent Researcher \\
+    \texttt{zero\_oversight\_project@proton.me}
+}
+
+\date{December 14, 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+This empirical study documents textual indicators of copyrighted content across 4.3 billion image-text pairs from three widely-used AI training datasets: COYO-700M (746M records), ReLAION-2B (2.2B records), and DataComp-1B (1.4B records). Using reproducible keyword matching on caption text, we quantify observable frequencies of copyright-related markers and mentions of major entertainment franchise characters.
+
+Stock photo agency mentions totaled 7.8 million records across datasets. Getty Images appeared in 4.28 million captions (0.059-0.126\%), Shutterstock in 3.61 million captions (0.022-0.102\%), and Associated Press in 5.57 million captions (0.086-0.175\%). The copyright symbol (©) appeared in 10.16 million captions (0.225--0.251\%).
+
+Character mentions from 48 major entertainment franchises totaled 17.5 million records. Batman (Warner Bros/DC) emerged as the most frequently mentioned character with 2.45 million mentions (0.0505\% average), followed by Spider-Man (Marvel/Disney) with 2.15 million mentions (0.0471\%) and Pokemon (Nintendo) with 1.70 million mentions (0.0374\%). Analysis across six major rights holders (Disney/Marvel, Warner Bros/DC, Nintendo, Sega, Nickelodeon, Universal/DreamWorks) revealed that Warner Bros/DC characters averaged 0.01552\% mentions---higher than Disney/Marvel's 0.00933\% average.
+
+Variance between datasets (measured as max/min ratio across the three datasets) ranged from 1.14x (Mickey Mouse) to 10.81x (Woody from Toy Story), suggesting different web source distributions or curation approaches. For context, contemporary LoRA (Low-Rank Adaptation) fine-tuning typically requires 30--100 training images for character consistency \citep{hu2021lora}, meaning the 2.45 million Batman mentions represent approximately 81,000x this threshold.
+
+\textbf{Critical limitations:} This analysis examines only textual caption metadata through keyword matching. Most copyrighted visual content contains no textual copyright markers. Presence of agency names or copyright symbols does not establish licensing status, provenance, or infringement---captions may reflect legitimate attribution, embedded metadata, or numerous other scenarios. False positives and false negatives are inherent to keyword approaches. No image content was analyzed. Results document observable textual patterns only and require expert interpretation for legal, technical, or policy contexts.
+\end{abstract}
+
+\noindent\textbf{Keywords:} training data, copyright, intellectual property, dataset composition, empirical analysis, LAION, COYO, DataComp, franchise characters, AI training datasets
+
+\clearpage 
+
+\section{Introduction}
+
+\subsection{Context and Scope}
+Large-scale image-text datasets constructed from web scraping underpin many contemporary multimodal AI systems. Three widely-cited examples COYO-700M, ReLAION-2B (a filtered reconstruction of LAION subsets), and DataComp-1B, collectively contain over 4 billion caption-image pairs harvested from public web sources.
+
+Questions about corpus composition have become increasingly relevant to technical, legal, and policy discussions surrounding AI training data. However, empirical documentation of what these datasets actually contain remains limited, particularly regarding textual indicators of copyrighted content.
+
+This study provides reproducible empirical measurements of two categories of textual metadata across these three datasets:
+
+\begin{enumerate} \item \textbf{Copyright indicators:} Mentions of stock photo agencies, copyright symbols, and related textual markers 
+\item  \textbf{Franchise character mentions:} References to characters from major entertainment properties across multiple rights holders \end{enumerate}
+
+The goal is to document observable patterns in caption text, not to make claims about copyright status, licensing, or legal compliance.
+
+
+
+\subsection{Scale and Context}
+To contextualize absolute counts reported in this study: Contemporary fine-tuning techniques like LoRA (Low-Rank Adaptation) for Stable Diffusion models typically require 30–100 training images to achieve character consistency [Hu et al., 2021]. The millions of character mentions documented here represent orders of magnitude beyond what specialized fine-tuning requires, suggesting these datasets contain substantial exposure to specific intellectual properties during base model training.
+
+For example, 2.45 million Batman mentions represents approximately 81,000x the typical LoRA training requirement [Hu et al., 2021]. This scale difference is important for understanding potential model capabilities and memorization patterns, though this study does not analyze actual model behavior or image content.
+
+
+\subsection{What This Study Does Not Address}
+This analysis is strictly descriptive and documents only textual metadata. It does \textbf{not} address:
+
+\begin{itemize}
+
+\item \textbf{Legal questions:} Copyright status, fair use, licensing compliance, transformative use
+\item \textbf{Image content:} Visual analysis, actual infringement determination, image similarity to source material
+\item \textbf{Model behavior:} Whether models trained on these datasets reproduce copyrighted content
+\item \textbf{Memorization:} Whether quantity of mentions correlates with model memorization
+\item \textbf{Provenance:} Whether content was scraped from licensed sources, public domain material, or unauthorized copies
+\item \textbf{Intent or liability:} Dataset creator practices, downstream model training implications
+\item \textbf{Policy recommendations:} Appropriate dataset curation practices, legal frameworks
+
+\end{itemize}
+
+Interpretation of findings for legal, policy, or technical decision-making requires domain expertise beyond the scope of empirical documentation.
+
+\subsection{Importance of Limitations}
+A caption containing "Getty Images" could represent:
+
+\begin{itemize}
+
+\item Licensed content with proper attribution
+\item Embedded EXIF metadata from legitimate use
+\item Web scraping of watermarked preview images
+\item Secondary sources discussing Getty content
+\item False positives from unrelated text
+\item Numerous other scenarios
+
+\end{itemize}
+
+This analysis cannot distinguish these cases. The presence of copyright indicators documents textual patterns only, as it does not establish rights status, licensing, or infringement.
+
+Similarly, a mention of "Batman" could represent official merchandise photography, fan art, news coverage, parody, educational use, or many other contexts. Without image analysis, we cannot determine the nature of the depiction.
+
+These examples illustrate interpretive ambiguity at a conceptual level; the full methodological limitations governing this analysis are specified in Section 2.5.
+
+\section{Methodology}
+
+\subsection{Datasets}
+Three datasets were analyzed using published schema specifications:
+
+\begin{table}[htbp]
+\centering
+\caption{Datasets analyzed in this study, including record counts and caption column specifications}
+\label{tab:datasets}
+\begin{tabular}{lrrr l}
+\toprule
+Dataset & Records & Caption Column & Source \\
+\midrule
+COYO-700M     & 746,361,237          & \texttt{text}     & \citet{kakaobrain2022coyo} \\
+ReLAION-2B    & 2,168,163,050        & \texttt{caption}  & Filtered LAION subset \\
+DataComp-1B   & 1,387,173,656        & \texttt{text}     & \citet{gadre2023datacomp} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All datasets stored as Parquet files. Total corpus: **4,301,697,943 records**.
+
+\subsection{Computational Environment}
+
+\begin{itemize}
+
+\item \textbf{Hardware:} Intel Core i9-13900K, 64GB RAM, NVMe storage
+\item \textbf{Software:} DuckDB v1.0+, Python 3.11, pandas
+\item \textbf{Configuration:} Memory limit 40GB, temp directory on SSD
+\item \textbf{Total runtime:} ~48 hours for complete audit
+
+\end{itemize}
+
+Consumer-grade hardware was sufficient for billion-scale analysis without distributed systems.
+
+\subsection{Copyright Indicators}
+We measured frequency of textual mentions for stock photo agencies commonly discussed in dataset curation contexts:
+
+\begin{itemize}
+
+\item \textbf{Stock agencies:} Getty Images, Shutterstock, Reuters, Associated Press, AFP, Alamy, iStock
+
+\item \textbf{Textual markers:} Copyright symbol (©), "copyright" text, "all rights reserved"
+
+\item \textbf{Method:} Case-insensitive LIKE pattern matching on caption text. 
+
+\end{itemize}
+
+\begin{lstlisting}
+-- Example query for Getty Images mentions
+SELECT COUNT(*) 
+FROM read_parquet('dataset/*.parquet')
+WHERE LOWER(caption) LIKE '%getty images%';
+\end{lstlisting}
+
+\textbf{Rationale for selection:} These agencies represent major commercial stock photography providers frequently mentioned in discussions of web-scraped datasets. Selection does not imply these are the only relevant copyright holders—thousands of other agencies, photographers, and artists remain unmeasured.
+
+
+\subsection{Franchise Character Indicators}
+Character mentions were selected from high-revenue entertainment franchises across multiple rights holders to provide comparative baseline. Selection criteria:
+
+\begin{enumerate} \item \textbf{Multi-billion dollar franchises:} Publicly documented as major revenue sources
+\item \textbf{High cultural prevalence:} Characters likely to appear frequently in web content
+\item \textbf{Multiple rights holders:} Balanced representation across six major companies
+\item \textbf{Distinctive names:} Reduced false positive risk where possible
+
+\end{enumerate}
+
+\textbf{Total measured:} 48 characters across 6 major rights holders
+
+Character queries included franchise context where needed to reduce false positives. 
+
+\textbf{Examples:}
+
+
+
+Character queries included franchise context where needed to reduce false positives. Examples:
+
+\begin{itemize}
+\item \texttt{LOWER(caption) LIKE '\%batman\%'} (distinctive name, minimal context needed)
+\item \texttt{LOWER(caption) LIKE '\%sonic\%' AND LOWER(caption) LIKE '\%hedgehog\%'} (disambiguation for common name)
+\item \texttt{LOWER(caption) LIKE '\%woody\%' AND (LOWER(caption) LIKE '\%toy story\%' OR LOWER(caption) LIKE '\%pixar\%')} (common first name requiring franchise context)
+\end{itemize}
+
+
+
+Complete query specifications available in accompanying code repository.
+
+\textbf{Rights holder organization:}
+
+\begin{itemize}
+
+\item \textbf{Disney/Marvel/Lucasfilm/Pixar:} 21 characters (Mickey Mouse, Spider-Man, Darth Vader, Buzz Lightyear, etc.)
+\item \textbf{Warner Bros/DC:} 7 characters (Batman, Superman, Wonder Woman, Bugs Bunny, Scooby-Doo, etc.)
+\item \textbf{Nintendo:} 8 characters (Mario, Pikachu, Link, Zelda, etc.)
+\item \textbf{Nickelodeon:} 4 characters (SpongeBob, TMNT, Dora, etc.)
+\item \textbf{Sega:} 3 characters (Sonic, Tails, Knuckles)
+\item \textbf{Universal/DreamWorks:} 5 characters (Minions, Shrek, Kung Fu Panda, etc.)
+
+\end{itemize}
+
+This distribution ensures the study examines IP across multiple companies rather than focusing on a single rights holder.
+
+
+\subsection{Critical Limitations}
+This study is subject to important methodological and interpretive limitations inherent to large-scale textual analysis of caption metadata. These constraints must be considered when interpreting all reported results.
+
+\textbf{Textual scope only.} The analysis examines caption text exclusively. No image content, embedded image metadata (e.g., EXIF), visual similarity, or perceptual features were analyzed. Results therefore document textual patterns only and do not describe the underlying visual content.
+
+\textbf{Keyword matching constraints.} All measurements rely on case-insensitive keyword matching and are subject to both false negatives and false positives.
+\begin{itemize}
+\item \textbf{False negatives.} False negatives: Synonyms, abbreviations, alternate spellings, misspellings, non-English references, and implicit mentions are not captured. Most copyrighted visual content contains no explicit textual markers in captions and is therefore undetectable by this approach.
+\item \textbf{False positives.} Matches may arise from unrelated contextual uses, commentary, parody, news reporting, personal names (e.g., “Mario”), or coincidental text fragments. Contextual filters reduce but do not eliminate this risk.
+\item \textbf{Context blindness.} The method cannot distinguish between direct depictions, discussion, criticism, parody, fan-created works, licensed merchandise, or other legitimate contexts.
+\end{itemize}
+
+\textbf{Interpretation of copyright indicators.}
+The presence of stock agency names or copyright-related text (e.g., “Getty Images” or the © symbol) does not establish licensing status, provenance, authorization, or infringement. Conversely, absence of such indicators does not imply that content is uncopyrighted or freely usable.
+
+
+\textbf{Interpretation of character mentions.}
+Mentions of franchise characters may correspond to official promotional material, fan art, merchandise photography, news coverage, parody, educational use, or other contexts. Without image-level analysis, the nature of any depiction cannot be determined.
+
+\textbf{Statistical and scope limitations.}
+Reported counts and percentages reflect caption-level text matches only and do not represent prevalence in visual content. No confidence intervals are provided, as the analysis covers complete datasets rather than samples. Observed differences between datasets may reflect source distributions, collection periods, or filtering strategies rather than systematic compositional intent.
+
+\textbf{Temporal and version limitations.}
+Results represent a snapshot of the datasets as accessed in December 2025.
+Datasets may have been updated, re-filtered, or modified since their original publication,
+and underlying web sources may have changed or been removed since the original scraping.
+
+
+\textbf{No causal analysis.}
+Observed differences between datasets cannot be causally attributed to specific curation decisions, and the effectiveness or intent of any filtering applied by dataset creators cannot be determined.
+
+\textbf{Selection bias.}
+The study examines a limited set of stock agencies and 48 characters from major entertainment franchises. Thousands of other copyright holders, artists, agencies, and properties were not analyzed. All keyword matching was conducted in English.
+
+\textbf{Non-determinative nature.}
+This analysis does not determine copyright status, licensing compliance, infringement, consent, model memorization, or downstream legal or policy implications. Interpretation of these findings requires additional domain expertise and complementary analyses beyond the scope of keyword-based textual auditing.
+
+
+\subsection{Reproducibility}
+The complete Python analysis script (\texttt{comprehensive\_ip\_audit.py}), full SQL queries, intermediate result CSVs, and figure-generation code are publicly available at:
+
+\begin{center}
+\url {https://github.com/abrahamohrenstein/image-text-dataset-audit}
+\end{center}
+
+The analysis can be fully reproduced on any system with DuckDB installed, provided access to the original datasets is obtained in accordance with their respective terms of use and licensing conditions \citep{kakaobrain2022coyo, gadre2023datacomp}.
+
+No additional proprietary software or compute resources beyond a standard workstation are required. Total runtime on the full corpora was approximately 48 hours using a consumer-grade CPU and SSD storage.
+
+\section{Results}
+
+\subsection{Copyright Indicators}
+
+Stock photo agency mentions and other copyright-related textual markers were quantified across the three datasets. Table~\ref{tab:stock_agencies} summarizes mentions of major stock photo agencies, and Table~\ref{tab:copyright_markers} presents broader textual copyright indicators.
+\begin{table}[htbp]
+\centering
+\caption{Major Stock Photo Agency Mentions Across Datasets}
+\label{tab:stock_agencies}
+\begin{tabular}{l r r  r r  r r  r r}
+\toprule
+\textbf{Agency} & \multicolumn{2}{c}{\textbf{Total}} & \multicolumn{2}{c}{\textbf{COYO-700M}} & \multicolumn{2}{c}{\textbf{ReLAION-2B}} & \multicolumn{2}{c}{\textbf{DataComp-1B}} \\
+& \textbf{Mentions} & \textbf{Avg \%} & \textbf{Count} & \textbf{\%} & \textbf{Count} & \textbf{\%} & \textbf{Count} & \textbf{\%} \\
+\midrule
+Getty Images     & 4,283,269 & 0.100\% & 938,911   & 0.126\% & 2,526,794 & 0.117\% & 817,564   & 0.059\% \\
+Shutterstock     & 3,614,326 & 0.084\% & 162,006   & 0.022\% & 2,038,870 & 0.094\% & 1,412,450 & 0.102\% \\
+Associated Press & 5,570,707 & 0.130\% & 638,191   & 0.086\% & 3,787,179 & 0.175\% & 1,144,757 & 0.082\% \\
+Reuters          & 2,556,449 & 0.060\% & 418,574   & 0.056\% & 1,366,187 & 0.063\% & 568,844   & 0.041\% \\
+Alamy            & 490,378   & 0.011\% & 59,567    & 0.008\% & 250,828   & 0.012\% & 179,983   & 0.013\% \\
+iStock           & 466,612   & 0.011\% & 98,362    & 0.013\% & 338,862   & 0.016\% & 229,388   & 0.017\% \\
+AFP              & 647,473   & 0.015\% & 143,750   & 0.019\% & 363,229   & 0.017\% & 140,494   & 0.010\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{table}[htbp]
+\centering
+\caption{Copyright-Related Textual Markers Across Datasets}
+\label{tab:copyright_markers}
+\begin{tabular}{l r r  r r  r r  r r}
+\toprule
+\textbf{Marker} & \multicolumn{2}{c}{\textbf{Total}} & \multicolumn{2}{c}{\textbf{COYO-700M}} & \multicolumn{2}{c}{\textbf{ReLAION-2B}} & \multicolumn{2}{c}{\textbf{DataComp-1B}} \\
+& \textbf{Mentions} & \textbf{Avg \%} & \textbf{Count} & \textbf{\%} & \textbf{Count} & \textbf{\%} & \textbf{Count} & \textbf{\%} \\
+\midrule
+Copyright Symbol ©    & 10,156,542 & 0.238\% & 1,874,975 & 0.251\% & 5,165,728 & 0.238\% & 3,115,839 & 0.225\% \\
+Copyright Text        & 2,124,031  & 0.050\% & 428,126   & 0.057\% & 1,216,970 & 0.056\% & 674,935   & 0.049\% \\
+All Rights Reserved   & 860,476    & 0.020\% & 167,520   & 0.022\% & 488,043   & 0.023\% & 204,913   & 0.015\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Across the combined 4.3 billion records, stock photo agency names appeared in approximately 7.8 million captions, with Getty Images (4.28 million), Shutterstock (3.61 million), and Associated Press (5.57 million) being the most frequent. The copyright symbol (©) alone appeared in 10.16 million captions (average 0.238\%).
+Notable variance exists between datasets: ReLAION-2B shows higher rates of Associated Press and Shutterstock mentions, while COYO-700M has the highest proportion of Getty Images references. Figure~\ref{fig:copyright_indicators} visualizes these patterns across all three datasets.
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/fig4_copyright_indicators.pdf}
+    \caption{Distribution of copyright-related textual markers across datasets}
+    \label{fig:copyright_indicators}
+\end{figure}
+
+The copyright symbol (©) showed the highest absolute count (10.16M mentions). 
+Associated Press appeared most frequently among stock agencies (5.57M mentions). 
+Shutterstock exhibited the highest variance between datasets (4.7$\times$).
+
+\subsection{Franchise Character Mentions}
+
+Character mentions from 48 major entertainment franchises totaled 17.5 million records across the three datasets. Batman (Warner Bros/DC) emerged as the most frequently mentioned character with 2.45 million occurrences (average 0.0505\%), followed by Spider-Man (Marvel/Disney) at 2.15 million (0.0471\%) and Pokemon (Nintendo) at 1.70 million (0.0374\%).
+
+% Table 3: Top 20 Characters
+\begin{table}[htbp]
+\centering
+\caption{Top 20 Characters by Total Mentions}
+\label{tab:top_characters}
+\small
+\begin{tabular}{clllrrrr}
+\toprule
+\textbf{Rank} & \textbf{Character} & \textbf{Rights Holder} & \textbf{Total} & \textbf{Avg} & \textbf{COYO} & \textbf{ReLAION} & \textbf{DataComp} \\
+ & & & \textbf{Mentions} & \textbf{\%} & \textbf{\%} & \textbf{\%} & \textbf{\%} \\
+\midrule
+1  & Batman         & Warner Bros/DC   & \textbf{2,452,135} & 0.0505\% & 0.021\% & 0.062\% & 0.068\% \\
+2  & Spider-Man     & Marvel/Disney    & \textbf{2,152,113} & 0.0471\% & 0.036\% & 0.054\% & 0.052\% \\
+3  & Pokemon        & Nintendo         & \textbf{1,702,179} & 0.0374\% & 0.035\% & 0.047\% & 0.030\% \\
+4  & Mickey Mouse   & Disney           & 1,524,475 & 0.0352\% & 0.036\% & 0.037\% & 0.033\% \\
+5  & Superman       & Warner Bros/DC   & 1,344,962 & 0.0286\% & 0.016\% & 0.033\% & 0.037\% \\
+6  & Minnie Mouse   & Disney           & 1,019,747 & 0.0230\% & 0.021\% & 0.025\% & 0.023\% \\
+7  & Minions        & Universal        & 904,739   & 0.0200\% & 0.017\% & 0.023\% & 0.019\% \\
+8  & Iron Man       & Marvel/Disney    & 848,029   & 0.0182\% & 0.011\% & 0.021\% & 0.022\% \\
+9  & Captain America & Marvel/Disney   & 799,625   & 0.0174\% & 0.014\% & 0.021\% & 0.017\% \\
+10 & Mario          & Nintendo         & 745,584   & 0.0159\% & 0.011\% & 0.019\% & 0.018\% \\
+11 & Zelda          & Nintendo         & 604,785   & 0.0128\% & 0.006\% & 0.014\% & 0.018\% \\
+12 & Wonder Woman   & Warner Bros/DC   & 543,813   & 0.0119\% & 0.009\% & 0.013\% & 0.014\% \\
+13 & Darth Vader    & Lucasfilm/Disney & 404,914   & 0.0087\% & 0.005\% & 0.010\% & 0.011\% \\
+14 & Pikachu        & Nintendo         & 361,385   & 0.0080\% & 0.005\% & 0.008\% & 0.010\% \\
+15 & SpongeBob      & Nickelodeon      & 331,187   & 0.0074\% & 0.005\% & 0.007\% & 0.011\% \\
+16 & Harley Quinn   & Warner Bros/DC   & 274,951   & 0.0065\% & 0.006\% & 0.006\% & 0.008\% \\
+17 & Sonic          & Sega             & 237,726   & 0.0056\% & 0.006\% & 0.006\% & 0.005\% \\
+18 & Scooby-Doo     & Warner Bros/DC   & 229,340   & 0.0053\% & 0.005\% & 0.005\% & 0.005\% \\
+19 & Elsa           & Disney           & 221,456   & 0.0050\% & 0.004\% & 0.006\% & 0.005\% \\
+20 & Hulk           & Marvel/Disney    & 216,820   & 0.0047\% & 0.003\% & 0.005\% & 0.006\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Figure 1: Top Characters Visualization
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig1_top_characters.pdf}
+\caption{Top 15 characters by total mentions across all three datasets. Batman (Warner Bros/DC) emerged as the most frequently mentioned character with 2.45 million total mentions, followed by Spider-Man (Marvel/Disney) and Pokemon (Nintendo).}
+\label{fig:top_characters}
+\end{figure}
+
+% Table 4: Rights Holder Summary
+\begin{table}[htbp]
+\centering
+\caption{Character Mentions by Rights Holder}
+\label{tab:rights_holders}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Rights Holder} & \textbf{Characters} & \textbf{Total} & \textbf{Average} & \textbf{Median} & \textbf{Range} \\
+ & & \textbf{Mentions} & \textbf{\%} & \textbf{\%} & \\
+\midrule
+Warner Bros/DC & 7 & 4,897,401 & 0.01552\% & 0.00549\% & 0.00015--0.0505\% \\
+Nintendo & 8 & 3,647,395 & 0.01059\% & 0.00709\% & 0.00070--0.0374\% \\
+Disney/Marvel/Lucasfilm/Pixar & 21 & 8,478,936 & 0.00933\% & 0.00329\% & 0.00024--0.0471\% \\
+Universal/DreamWorks & 5 & 1,322,785 & 0.00615\% & 0.00412\% & 0.00015--0.0200\% \\
+Nickelodeon & 4 & 746,823 & 0.00434\% & 0.00453\% & 0.00069--0.0107\% \\
+Sega & 3 & 296,820 & 0.00229\% & 0.00062\% & 0.00047--0.0056\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Figure 2: Rights Holder Comparison
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/fig2_rights_holders.pdf}
+\caption{Average character mention frequency by rights holder. Warner Bros/DC characters showed the highest average frequency (0.01552\%) despite having fewer characters measured, exceeding Disney/Marvel/Lucasfilm/Pixar's average (0.00933\%) by 66\%.}
+\label{fig:rights_holders}
+\end{figure}
+
+\paragraph{Summary statistics:}
+\begin{itemize}
+\item \textbf{Total character mentions across all 48 characters:} 17,528,160 records
+\item \textbf{Batman alone:} 2.45M mentions = 81,738$\times$ typical LoRA training requirement (30 images)
+\item \textbf{Spider-Man alone:} 2.15M mentions = 71,737$\times$ typical LoRA training requirement
+\item \textbf{Top 5 characters:} 9.17M total mentions (52\% of all character mentions)
+\end{itemize}
+
+\paragraph{Key observations:}
+\begin{itemize}
+\item Batman emerged as most frequently mentioned character across all datasets
+\item Warner Bros/DC characters showed highest average frequency despite having fewer characters measured
+\item Only 3 of top 10 characters are Disney/Marvel properties
+\item Pokemon (\#3) demonstrates gaming IP web presence rivals major film franchises
+\item Gaming franchises (Nintendo, Sega) showed 3.94M total mentions
+\end{itemize}
+
+
+\subsection{Dataset Variance Patterns}
+
+Mention rates for individual characters and markers varied substantially between datasets. Variance is quantified here as the max/min percentage ratio across the three datasets. Table~\ref{tab:high_variance} lists characters with the highest variance, and Table~\ref{tab:low_variance} presents those with the most stable presence.
+
+% Table 5: High Variance Characters
+\begin{table}[htbp]
+\centering
+\caption{Characters with Highest Dataset Variance (Max/Min Ratio)}
+\label{tab:high_variance}
+\small
+\begin{tabular}{llrrrrl}
+\toprule
+\textbf{Character} & \textbf{Rights Holder} & \textbf{Total} & \textbf{Variance} & \textbf{Min} & \textbf{Max} & \textbf{Range} \\
+ & & \textbf{Mentions} & \textbf{Ratio} & \textbf{\%} & \textbf{\%} & \\
+\midrule
+Woody & Pixar/Disney & 80,115 & 10.81$\times$ & 0.000236\% & 0.002551\% & COYO $\to$ ReLAION \\
+Luke Skywalker & Lucasfilm/Disney & 99,893 & 3.80$\times$ & 0.000788\% & 0.002998\% & COYO $\to$ DataComp \\
+Dora & Nickelodeon & 91,169 & 3.37$\times$ & 0.000809\% & 0.002729\% & COYO $\to$ DataComp \\
+Link & Nintendo & 133,709 & 3.37$\times$ & 0.001225\% & 0.004126\% & COYO $\to$ DataComp \\
+Joker & Warner Bros/DC & 173,704 & 3.23$\times$ & 0.001627\% & 0.005250\% & COYO $\to$ DataComp \\
+Batman & Warner Bros/DC & 2,452,135 & 3.22$\times$ & 0.021150\% & 0.068143\% & COYO $\to$ DataComp \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table 6: Low Variance Characters
+\begin{table}[htbp]
+\centering
+\caption{Characters and Markers with Lowest Dataset Variance (Most Stable)}
+\label{tab:low_variance}
+\small
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Character/Marker} & \textbf{Rights Holder} & \textbf{Total} & \textbf{Variance} & \textbf{Min} & \textbf{Max} \\
+ & & \textbf{Mentions} & \textbf{Ratio} & \textbf{\%} & \textbf{\%} \\
+\midrule
+Mickey Mouse & Disney & 1,524,475 & 1.14$\times$ & 0.032541\% & 0.037121\% \\
+Minnie Mouse & Disney & 1,019,747 & 1.21$\times$ & 0.020750\% & 0.025017\% \\
+Goofy & Disney & 50,520 & 1.30$\times$ & 0.001007\% & 0.001309\% \\
+Copyright Symbol © & Marker & 10,156,542 & 1.12$\times$ & 0.224618\% & 0.251215\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Figure 3: Variance Visualization
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig3_variance.pdf}
+\caption{Dataset variance ratios (max/min) for selected characters. Variance ranges from 1.14$\times$ (Mickey Mouse) to 10.81$\times$ (Woody), with classic characters showing remarkable stability while context-dependent characters show high variance.}
+\label{fig:variance}
+\end{figure}
+
+\paragraph{Key observations:}
+\begin{itemize}
+\item Variance ranged from 1.14$\times$ (Mickey Mouse) to 10.81$\times$ (Woody from Toy Story)
+\item Classic Disney characters show remarkably consistent presence across datasets
+\item Characters requiring context disambiguation show higher variance
+\item Dataset-specific patterns suggest different web source distributions
+\end{itemize}
+These findings are further illustrated in Figure~\ref{fig:variance}, which highlights the distribution of variance ratios across selected characters.
+
+\section{Discussion}
+
+\subsection{Observed Patterns in Copyright Indicators}
+Stock photo agency mentions and copyright-related textual markers appeared in millions of captions across the combined 4.3 billion record corpus. The copyright symbol (©) alone was present in 10.16 million captions, representing the single most prevalent indicator (average 0.238\%). Getty Images mentions totaled 4.28 million (average 0.100\%), Associated Press 5.57 million (average 0.130\%), and Shutterstock 3.61 million (average 0.084\%).
+
+When accounting for likely overlap between categories (e.g., records containing both an agency name and the copyright symbol), approximately 0.72\% of all captions contained at least one observable copyright-related textual marker. This low overall percentage suggests that keyword-based detection identifies only a small fraction of any copyrighted visual content that may be present, as most professional photography, artwork, and licensed images on the web do not include explicit textual copyright markers in accompanying captions.
+
+Dataset-specific rates showed notable variance. Getty Images mentions ranged 2.1$\times$ across datasets (0.059\% in DataComp-1B to 0.126\% in COYO-700M), while Shutterstock mentions varied 4.7$\times$ (0.022\% in COYO-700M to 0.102\% in DataComp-1B). Associated Press mentions were highest in ReLAION-2B (0.175\%). Such differences are consistent with varying web source distributions, collection time periods, or filtering strategies among the three datasets, though detailed curation methodologies are not fully documented in publicly available sources.
+
+These findings document observable textual patterns only and do not establish licensing status, provenance, or legal implications of the underlying images.
+
+\subsection{Cross-Company Character Analysis}
+A key finding is that characters associated with Warner Bros/DC properties accounted for 4.90 million total mentions across the three datasets, compared to 8.48 million mentions for the broader Disney/Marvel/Lucasfilm/Pixar group. However, when normalized by the number of characters measured, Warner Bros/DC characters exhibited a substantially higher per-character average mention rate (0.01552\%) than the Disney-affiliated group (0.00933\%)---representing a 66\% higher frequency despite the Disney group containing three times as many measured characters (21 vs. 7).
+
+Batman emerged as the most frequently mentioned individual character with 2.45 million occurrences, followed by Spider-Man (2.15 million) and Pokemon (1.70 million); Mickey Mouse ranked fourth with 1.52 million mentions (see Table~\ref{tab:top_characters}). This pattern---higher average mention rates for Warner Bros/DC properties---indicates that DC superhero characters have particularly strong representation in the caption text of these web-derived image datasets.
+
+The observed distribution across rights holders is visualized in Figure~\ref{fig:rights_holders} and documented in Table~\ref{tab:rights_holders}. These results reflect textual patterns only and do not imply anything about the underlying visual content, licensing status, or representational balance in the images themselves. Differences may arise from varying web source distributions, cultural popularity at the time of scraping, or curation practices among the datasets.
+
+\subsection{Scale Context: LoRA Training Requirements}
+Contemporary fine-tuning techniques, such as LoRA (Low-Rank Adaptation) for Stable Diffusion models, typically require 30--100 training images to achieve consistent character-specific generation capabilities~\citep{hu2021lora}. The mention counts documented in this study provide quantitative context for the scale of textual exposure during base model pre-training.
+
+Selected examples, using a midpoint requirement of 30 images for calculation, include:
+\begin{itemize}
+\item Batman (2.45 million mentions): approximately 81,738$\times$ the typical LoRA requirement
+\item Spider-Man (2.15 million mentions): approximately 71,737$\times$ the typical requirement
+\item Pokemon (1.70 million mentions): approximately 56,739$\times$ the typical requirement
+\item Mickey Mouse (1.52 million mentions): approximately 50,816$\times$ the typical requirement
+\end{itemize}
+
+This differential—orders of magnitude greater exposure during base training than in specialized fine-tuning—offers technical context for discussions about model learning dynamics with respect to popular franchise characters.
+
+It is emphasized that mention frequency in caption text does not directly correlate with model memorization, reproduction risk, or generation capability. Numerous factors influence whether models internalize and reproduce specific content, including image quality, visual consistency across examples, training methodology, alignment procedures, and architecture design. The present analysis documents textual exposure patterns only and makes no claims about actual model behavior, memorization patterns, or generative outcomes.
+
+\subsection{Gaming vs. Film/TV Franchises}
+Gaming-related characters from Nintendo (3.65 million total mentions) and Sega (0.30 million) accounted for 3.94 million mentions across the three datasets. Nintendo characters exhibited an average mention rate of 0.01059\% per character, comparable to or exceeding many film and television properties.
+
+Pokemon ranked third overall with 1.70 million mentions, ahead of Mickey Mouse (1.52 million, fourth place). Mario (0.75 million) and Zelda (0.60 million) also featured prominently among the top 20 (Table~\ref{tab:top_characters}).
+
+This observed prevalence of gaming characters is consistent with substantial contributions from gaming culture and fan communities to web image sources. Potential factors reflected in the data include:
+
+\begin{itemize}
+\item Active fan art communities for gaming properties
+\item Official promotional materials, screenshots, and artwork from game developers
+\item Photography of licensed gaming merchandise
+\item Cross-media adaptations (e.g., Pokemon anime, Mario films)
+\item Dataset-specific web source distributions favoring gaming content
+\end{itemize}
+
+These patterns document the proportional representation of gaming intellectual property in billion-scale web-scraped image-text datasets, comparable to or exceeding traditional entertainment media in caption text frequency.
+
+\subsection{Variance Patterns and Dataset Curation}
+Character mention rates exhibited substantial variance between datasets, with max/min ratios ranging from 1.14$\times$ (Mickey Mouse, 1.52 million total mentions) to 10.81$\times$ (Woody, 80 thousand total mentions). Several consistent patterns emerged from the data (see Table~\ref{tab:high_variance}, Table~\ref{tab:low_variance}, and Figure~\ref{fig:variance}).
+
+\paragraph{Low-variance characters (1.1--1.5$\times$ ratio):}
+\begin{itemize}
+\item Predominantly classic cartoon characters: Mickey Mouse (1.14$\times$), Minnie Mouse (1.21$\times$), Goofy (1.30$\times$), and Bugs Bunny (1.75$\times$)
+\item All exhibited large absolute mention counts ($>$50,000 total)
+\item Suggest relatively consistent representation across the different web sources and curation approaches of the three datasets
+\end{itemize}
+
+\paragraph{High-variance characters ($>$3$\times$ ratio):}
+\begin{itemize}
+\item Often required additional contextual keywords for disambiguation: Woody (10.81$\times$), Link (3.37$\times$), Joker (3.23$\times$)
+\item Generally lower absolute mention counts (most $<$200,000 total)
+\item Higher variance may reflect name ambiguity, selective presence in specific web domains, or differential filtering effectiveness
+\end{itemize}
+
+\paragraph{Dataset-specific patterns:}
+\begin{itemize}
+\item \textbf{DataComp-1B} showed elevated rates for Warner Bros/DC superheroes (e.g., Batman 945 thousand mentions, Superman 512 thousand)
+\item \textbf{ReLAION-2B} contained higher Marvel content (e.g., Spider-Man 1.17 million, Iron Man 453 thousand)
+\item \textbf{COYO-700M} had comparatively higher Pokemon representation relative to the other datasets (260 thousand vs. 413 thousand in DataComp-1B and 1.03 million in ReLAION-2B)
+\end{itemize}
+
+The extreme case of Woody (from 1,758 mentions in COYO-700M to 55,299 in ReLAION-2B, 10.81$\times$ ratio) illustrates the magnitude of differences possible between datasets. These patterns are consistent with varying web source distributions, collection strategies, or filtering approaches, though detailed scraping methodologies are not publicly documented for all datasets, precluding causal attribution.
+
+\subsection{Interpretation Context}
+\textbf{Web-scale baseline unknown.} No comprehensive benchmark exists for the prevalence of these textual indicators across the public web as a whole. The observed frequencies may largely reflect natural distributions in web image-caption pairs rather than dataset-specific curation choices or anomalies.
+
+\textbf{Multiple explanations for presence of copyright indicators.}  
+A caption containing "Getty Images" (4.28 million occurrences) or similar agency terms could correspond to diverse scenarios, including:
+\begin{itemize}
+\item Licensed content with proper attribution
+\item Watermarked low-resolution preview images from stock sites
+\item Secondary sources discussing or critiquing stock photography
+\item Embedded metadata or watermarks preserved in captions
+\item News articles crediting photographic sources
+\item Numerous other legitimate or incidental contexts
+\end{itemize}
+
+\textbf{Multiple explanations for character mentions.}  
+A mention of Batman (2.45 million occurrences) or other franchise characters could represent a wide range of content types, such as:
+\begin{itemize}
+\item Official promotional or merchandise photography
+\item Fan-created art and derivative works (particularly prevalent in gaming and comic communities)
+\item News coverage, reviews, and entertainment reporting
+\item Parody, satire, or criticism (often legally protected uses)
+\item Educational or transformative works
+\item Cosplay photography
+\item Video game screenshots or gameplay images
+\item Film and television promotional materials
+\item Many other contexts
+\end{itemize}
+Without direct analysis of the associated images, these cases cannot be distinguished. The documented mention counts therefore include an unknown mixture of official, licensed, fan-created, parodic, educational, and other content categories.
+
+\textbf{Multiple explanations for absence.}  
+The absence of observable textual copyright indicators or character mentions (present in only a small fraction of captions) does not imply:
+\begin{itemize}
+\item The associated content is in the public domain
+\item The content is uncopyrighted
+\item The content may be freely reused
+\item No intellectual property rights apply
+\item Dataset filtering successfully removed copyrighted material
+\end{itemize}
+Most professionally created photographs, illustrations, and character depictions contain no explicit textual markers in accompanying web captions indicating copyright status, licensing, or character identity.
+
+\subsection{Scope and Non-Determinative Nature of the Analysis}
+This empirical analysis, based solely on keyword matching in caption text, cannot determine or address the following questions:
+
+\begin{enumerate}
+\item \textbf{Copyright status:} Whether specific records contain copyrighted material.
+\item \textbf{Licensing compliance:} Whether dataset creators had permission or rights to include particular content.
+\item \textbf{Infringement:} Whether any legal violations occurred in dataset construction or use.
+\item \textbf{Model behavior:} Whether models trained on these datasets can reproduce specific characters or content.
+\item \textbf{Memorization:} Whether mention frequency correlates with model memorization or overfitting.
+\item \textbf{Filtering effectiveness:} Whether curation practices successfully identified or removed copyrighted material.
+\item \textbf{Downstream implications:} How training on these datasets affects broader copyright or fair use considerations.
+\item \textbf{Legal liability:} Whether any parties bear responsibility under applicable law.
+\item \textbf{Fair use applicability:} Whether particular uses qualify under fair use or other exemptions.
+\item \textbf{Consent status:} Whether intellectual property owners or identifiable individuals consented to inclusion.
+\item \textbf{Actual prevalence:} What overall percentage of copyrighted visual content is represented by these textual indicators.
+\item \textbf{Provenance:} The original source, licensing history, or rights chain for any specific record.
+\item \textbf{Image quality:} Whether mentions correspond to high-quality or recognizable depictions.
+\item \textbf{Visual consistency:} Whether associated images consistently and accurately depict the mentioned characters.
+\end{enumerate}
+
+Addressing these questions would require legal expertise, direct image content analysis, provenance tracing, controlled model evaluations, and case-by-case assessment, as none of which are within the scope of the present keyword-based textual audit.
+
+\subsection{Limitations in Practice}
+\paragraph{High false negative rate likely $>$95\%:} The majority of copyrighted visual content (professional photography, artwork, illustrations, and character depictions) contains no explicit textual copyright markers or character names in accompanying web captions. Consequently, the keyword-based approach employed here likely detects only a small fraction ($<$5\%) of any copyrighted images that may be present.
+
+For franchise character mentions, the method misses all visual depictions lacking textual references. For example, a comic book panel, fan art image, or merchandise photograph featuring Batman without the word "Batman" (or related terms) in the caption would not be counted.
+
+\textbf{Unknown false positive rate.}  
+Generic or ambiguous terms can produce unrelated matches. Without manual validation or image inspection, the false positive rate cannot be quantified. Examples include:
+\begin{itemize}
+\item "Mario" used as a personal name in unrelated photo captions
+\item "Link" appearing in hyperlinks or as a verb
+\item "Thor" referring to Norse mythology or a personal name
+\end{itemize}
+Contextual filters (e.g., requiring co-occurrence with "Zelda" for "Link") mitigate but do not eliminate such cases.
+
+\textbf{Selection bias.}  
+Indicators were measured for a limited set of commonly discussed stock agencies and high-revenue entertainment franchises. Thousands of other copyright holders, independent artists, photographers, stock libraries, and entertainment properties were not examined. The 48 selected characters and listed agencies represent only a small fraction of global copyrighted intellectual property in media and visual content.
+
+\subsection{Value of Empirical Documentation}
+Despite the methodological limitations outlined, reproducible empirical documentation of this kind provides several important contributions:
+
+\begin{enumerate}
+\item \textbf{Transparency.} Offers concrete, verifiable data on observable dataset composition (e.g., approximately 10.16 million copyright symbol occurrences and 17.5 million franchise character mentions across the combined corpus).
+\item \textbf{Baseline establishment.} Supplies reference measurements that future studies can extend, replicate, or compare against as new datasets emerge.
+\item \textbf{Methodology demonstration.} Illustrates that large-scale corpus audits are feasible on consumer-grade hardware using efficient analytical tools such as DuckDB.
+\item \textbf{Discussion context.} Provides quantitative reference points for technical, legal, and policy conversations surrounding training data composition.
+\item \textbf{Comparative analysis.} Highlights meaningful differences in textual patterns between datasets (e.g., character mention variance ranging from 1.14$\times$ to 10.81$\times$).
+\item \textbf{Scale understanding.} Documents the orders-of-magnitude difference in textual exposure during base pre-training compared to typical fine-tuning requirements.
+\end{enumerate}
+
+Interpretation of these findings for practical, legal, or policy decision-making nonetheless requires substantial additional context, domain expertise, and complementary analyses beyond keyword-based textual pattern documentation.
+
+\section{Conclusion}
+This study provides reproducible empirical documentation of textual indicators of copyrighted content across 4.3 billion image-text pairs from three widely-used multimodal training datasets: COYO-700M, ReLAION-2B, and DataComp-1B.
+
+The copyright symbol (©) appeared in 10.16 million captions (average 0.238\%), and major stock photo agency names collectively accounted for approximately 7.8 million additional mentions, though with likely overlap between categories. Franchise character references from 48 selected entities totaled 17.5 million occurrences. Batman (Warner Bros/DC) ranked highest with 2.45 million mentions, followed by Spider-Man (Marvel/Disney) at 2.15 million and Pokemon (Nintendo) at 1.70 million.
+
+Normalized analysis revealed Warner Bros/DC characters averaged 0.01552\% mentions per character—higher than the Disney/Marvel/Lucasfilm/Pixar group's 0.00933\% average despite fewer measured entities (7 vs. 21). Gaming franchises contributed 3.94 million mentions, with Pokemon ranking third overall. Dataset variance ranged from 1.14$\times$ (Mickey Mouse) to 10.81$\times$ (Woody), consistent with differing source distributions or curation strategies.
+
+For technical context, contemporary LoRA fine-tuning typically requires 30--100 images for character consistency~\citep{hu2021lora}; the millions of mentions documented here exceed this threshold by several orders of magnitude during base pre-training.
+
+These measurements establish an empirical baseline for observable textual patterns related to intellectual property in training corpora. Careful interpretation is essential: presence of indicators does not establish infringement, licensing status, or legal liability, and absence does not imply content is uncopyrighted or freely usable. Most copyrighted visual content lacks detectable textual markers in captions, suggesting keyword approaches capture only a small fraction of any such material present.
+
+This work demonstrates that large-scale, reproducible corpus audits are feasible on consumer hardware (approximately 48 hours on a standard workstation with DuckDB). The methodology and results provide a foundation for future documentation of training dataset characteristics and can be extended to additional content categories or emerging datasets.
+
+Code, full SQL queries, result CSVs, and figure-generation scripts are available at:  
+\begin{center}
+\url{https://github.com/abrahamohrenstein/image-text-dataset-audit} 
+\end{center}
+
+\section*{Acknowledgments}
+This work was conducted independently without institutional support. Thanks to the developers of DuckDB for enabling efficient large-scale data analysis on consumer hardware.
+
+% Bibliography
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\clearpage
+
+\appendix
+
+\section{Complete Query Specifications}
+\label{app:queries}
+
+Example queries for reproducibility:
+
+\begin{lstlisting}
+-- Batman (no context needed - distinctive name)
+SELECT COUNT(*) FROM read_parquet('dataset/*.parquet')
+WHERE LOWER(caption) LIKE '%batman%';
+
+-- Woody (requires context to reduce false positives)
+SELECT COUNT(*) FROM read_parquet('dataset/*.parquet')
+WHERE LOWER(caption) LIKE '%woody%' 
+  AND (LOWER(caption) LIKE '%toy story%' 
+       OR LOWER(caption) LIKE '%pixar%');
+
+-- Copyright symbol
+SELECT COUNT(*) FROM read_parquet('dataset/*.parquet')
+WHERE caption LIKE '%©%';
+
+-- Getty Images
+SELECT COUNT(*) FROM read_parquet('dataset/*.parquet')
+WHERE LOWER(caption) LIKE '%getty images%';
+\end{lstlisting}
+
+Full query specifications and code available at: \url{https://github.com/abrahamohrenstein/image-text-dataset-audit}
+
+\section{Rights Holder Character Lists}
+The 48 characters analyzed in this study are grouped by primary rights holder. Totals represent summed mentions across the three datasets (rounded to nearest thousand).
+
+\textbf{Disney/Marvel/Lucasfilm/Pixar (21 characters):}  
+Mickey Mouse (1.52M), Minnie Mouse (1.02M), Donald Duck (173K), Goofy (51K), Elsa (221K), Anna (166K), Simba (206K), Ariel (108K), Spider-Man (2.15M), Iron Man (848K), Captain America (800K), Hulk (217K), Thor (205K), Black Widow (55K), Darth Vader (405K), Luke Skywalker (100K), Yoda (127K), R2-D2 (181K), Buzz Lightyear (107K), Woody (80K), Lightning McQueen (120K)
+
+\textbf{Warner Bros/DC (7 characters):}  
+Superman (1.34M), Batman (2.45M), Wonder Woman (544K), Joker (174K), Harley Quinn (275K), Bugs Bunny (85K), Scooby-Doo (229K)
+
+\textbf{Nintendo (8 characters):}  
+Mario (746K), Luigi (278K), Princess Peach (50K), Bowser (34K), Pikachu (361K), Pokemon (1.70M), Link (134K), Zelda (605K)
+
+\textbf{Nickelodeon (4 characters):}  
+SpongeBob (331K), Patrick Star (33K), Teenage Mutant Ninja Turtles (352K), Dora (91K)
+
+\textbf{Sega (3 characters):}  
+Sonic (238K), Tails (31K), Knuckles (24K)
+
+\textbf{Universal/DreamWorks (5 characters):}  
+Minions (905K), Gru (17K), Shrek (139K), Donkey (7K), Kung Fu Panda (326K)
+
+\end{document}
