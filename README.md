@@ -265,7 +265,7 @@ Interpretation requires domain expertise in law, ML, and policy.
 Zero Oversight Project  
 Independent Researcher  
 📧 zero.oversight.project@proton.me  
-🐦 [@ZeroOversight](https://twitter.com/ZeroOversight) *(if applicable)*
+🐦 [@ZeroOversight](https://twitter.com/ZeroOversight)
 
 ---
 
